@@ -50,7 +50,7 @@
   <body>
     <article>
       <img width="100" height="100"
-           src="https://cdn.rawgit.com/logux/logux/master/logo.svg" />
+           src="https://cdn.rawgit.com/logux/logux/master/logo.svg" alt="Logux logo"/>
       <h1>Logux Status</h1>
       <p>
         <a href="https://github.com/logux">Logux</a>
@@ -81,6 +81,10 @@
         <li>
           <strong>log</strong> displays Logux events in browser console.
         </li>
+        <li>
+          <strong>badge</strong> shows widget to display Logux synchronization
+          status.
+        </li>
       </ul>
       <h2>Controls</h2>
       <section class="connection">
@@ -91,7 +95,8 @@
         <footer>
           Tests:
           <strong>favicon</strong>,
-          <strong>log</strong>
+          <strong>log</strong>,
+          <strong>badge</strong>
         </footer>
       </section>
       <section>
@@ -100,7 +105,8 @@
           Tests:
           <strong>attention</strong>,
           <strong>favicon</strong>,
-          <strong>log</strong>
+          <strong>log</strong>,
+          <strong>badge</strong>
         </footer>
       </section>
       <section>
@@ -109,6 +115,25 @@
           Tests:
           <strong>attention</strong>,
           <strong>favicon</strong>,
+          <strong>log</strong>,
+          <strong>badge</strong>
+        </footer>
+      </section>
+      <section>
+        <button id="protocolError">Protocol error after 3 seconds</button>
+        <footer>
+          Tests:
+          <strong>attention</strong>,
+          <strong>favicon</strong>,
+          <strong>log</strong>,
+          <strong>badge</strong>
+        </footer>
+      </section>
+      <section>
+        <button id="setSynchronized">Set synchronized after 3 seconds</button>
+        <footer>
+          Tests:
+          <strong>badge</strong>,
           <strong>log</strong>
         </footer>
       </section>
@@ -117,7 +142,8 @@
         <footer>
           Tests:
           <strong>confirm</strong>,
-          <strong>log</strong>
+          <strong>log</strong>,
+          <strong>badge</strong>
         </footer>
       </section>
       <section>

@@ -10,10 +10,14 @@ var attention = require('../../attention')
 var confirm = require('../../confirm')
 var favicon = require('../../favicon')
 var log = require('../../log')
+var badge = require('../../badge')
 
 var faviconNormal = require('./normal.png')
 var faviconOffline = require('./offline.png')
 var faviconError = require('./error.png')
+
+var styles = require('../../badge/default')
+var messages = require('../../badge/en')
 
 var pair = new LocalPair()
 
@@ -38,6 +42,11 @@ favicon(client, {
   error: faviconError
 })
 log(client)
+badge(client, {
+  position: 'bottom-right',
+  messages: messages,
+  styles: styles
+})
 
 client.sync.connection.connect()
 
@@ -59,6 +68,28 @@ document.all.serverError.onclick = function () {
   setTimeout(function () {
     pair.right.send(['error', 'wrong-format'])
   }, 3000)
+}
+
+document.all.protocolError.onclick = function () {
+  setTimeout(function () {
+    client.sync.syncError('wrong-protocol',
+                          { supported: ['1.0'], used: ['1.1.0'] })
+  }, 3000)
+}
+
+document.all.setSynchronized.onclick = function () {
+  setTimeout(function () {
+    client.sync.setState('wait')
+    setTimeout(function () {
+      client.sync.setState('connecting')
+      setTimeout(function () {
+        client.sync.setState('sending')
+        setTimeout(function () {
+          client.sync.setState('synchronized')
+        }, 500)
+      }, 500)
+    }, 1000)
+  }, 1000)
 }
 
 document.all.add.onclick = function () {

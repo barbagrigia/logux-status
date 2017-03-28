@@ -13,6 +13,9 @@ var attention = require('logux-status/attention')
 var confirm = require('logux-status/confirm')
 var favicon = require('logux-status/favicon')
 var log = require('logux-status/log')
+var badge = require('logux-status/badge')
+var messages = require('logux-status/badge/en')
+var defaultStyles = require('logux-status/badge/default')
 
 attention(client)
 confirm(client, i18n.t('loguxWarn'))
@@ -22,6 +25,11 @@ favicon(client, {
   error: '/error.ico'
 })
 log(client)
+badge(client, {
+  position: 'bottom-right',
+  messages: messages,
+  styles: defaultStyles
+})
 ```
 
 <a href="https://evilmartians.com/?utm_source=logux-status">
@@ -158,6 +166,51 @@ It return a function to disable itself.
 
 ```js
 var unbind = log(client)
+function disableLogux() {
+  unbind()
+}
+```
+
+
+## `badge`
+
+Show widget to display synchronization status.
+
+```js
+var badge = require('logux-status/badge')
+badge(client)
+```
+
+User should always be sure, that she/he have latest updates.
+If pages goes offline, we must notify user, that data could be outdated.
+By using widget, we could notify user about current synchronization status, errors and Internet disconnection.
+
+In the second argument, you can specify widget settings object.
+
+You can set widget position, one of `top-left`, `top-right`, `bottom-left`, `bottom-right`.
+
+```js
+badge(client, { position: 'bottom-left' })
+```
+
+You can use i18n messages for localization, by default they are in **[`en`](./badge/en.js)** and **[`ru`](./badge/ru.js)**, or set their own.
+
+```js
+var ru = require('logux-status/badge/ru')
+badge(client, { messages: ru })
+```
+
+You can use **[`default`](./badge/default.js)** icons, inline styles and timeout to display synchronized state, or set their own.
+
+```js
+var default = require('logux-status/badge/default')
+badge(client, { styles: default })
+```
+
+It return a function to disable itself.
+
+```js
+var unbind = badge(client)
 function disableLogux() {
   unbind()
 }

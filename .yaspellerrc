@@ -13,6 +13,7 @@
     "Syncable",
     "UX",
     "favicon",
-    "colorized"
+    "colorized",
+    "i18n"
   ]
 }
