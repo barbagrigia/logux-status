@@ -2,8 +2,9 @@ var MemoryStore = require('logux-core/memory-store')
 var ClientSync = require('logux-sync/client-sync')
 var LocalPair = require('logux-sync/local-pair')
 var BaseSync = require('logux-sync/base-sync')
-var Client = require('logux-client/client')
 var Log = require('logux-core/log')
+
+var Client = require('logux-client/client')
 
 // Logux Status features
 var attention = require('../../attention')
@@ -32,7 +33,9 @@ var client = new Client({
   userId: 10,
   url: 'wss://example.com/'
 })
+var old = client.sync
 client.sync = new ClientSync(client.sync.localNodeId, client.log, pair.left)
+client.sync.emitter = old.emitter
 
 attention(client)
 confirm(client)
@@ -48,7 +51,11 @@ badge(client, {
   styles: styles
 })
 
-client.sync.connection.connect()
+client.sync.on('state', function () {
+  document.all.connection.checked = client.sync.connected
+})
+
+client.start()
 
 document.all.connection.onchange = function (e) {
   if (e.target.checked) {

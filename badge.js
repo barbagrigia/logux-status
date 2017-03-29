@@ -58,7 +58,6 @@ function setIcon (element, icon) {
  * })
  */
 function badge (client, settings) {
-  var sync = client.sync
   settings = settings || {}
 
   var position = settings.position || 'bottom-right'
@@ -93,9 +92,9 @@ function badge (client, settings) {
     widget.appendChild(icon)
     setInlineStyle(icon, styles.icon)
 
-    unbind.push(sync.on('state', function () {
+    unbind.push(client.on('state', function () {
       setInlineStyle(widget, normal)
-      switch (sync.state) {
+      switch (client.state) {
         case 'synchronized':
           setIcon(icon, icons.success)
           message.innerHTML = messages.synchronized
@@ -127,10 +126,10 @@ function badge (client, settings) {
           setInlineStyle(widget, visible)
           break
       }
-      prevState = sync.state
+      prevState = client.state
     }))
 
-    unbind.push(sync.on('error', function (err) {
+    unbind.push(client.sync.on('error', function (err) {
       if (err.type === 'wrong-protocol' || err.type === 'wrong-subprotocol') {
         setIcon(icon, icons.attention)
         message.innerHTML = messages.protocolError

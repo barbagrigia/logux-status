@@ -1,7 +1,7 @@
 var BaseSync = require('logux-sync').BaseSync
 var TestPair = require('logux-sync').TestPair
-var TestTime = require('logux-core').TestTime
 var SyncError = require('logux-sync').SyncError
+var Client = require('logux-client').Client
 
 var badge = require('../badge')
 var messages = require('../badge/en')
@@ -22,12 +22,22 @@ function getBadgeMessage () {
   return document.getElementById(badgeMessageId).innerHTML
 }
 
-function createTest () {
+function createClient () {
+  var client = new Client({
+    subprotocol: '1.0.0',
+    userId: false,
+    url: 'wss://localhost:1337'
+  })
+
   var pair = new TestPair()
-  pair.leftSync = new BaseSync('client', TestTime.getLog(), pair.left)
-  pair.leftSync.catch(function () { })
+  var sync = new BaseSync('client', client.log, pair.left)
+  sync.catch(function () { })
+  sync.emitter = client.sync.emitter
+  client.sync = sync
+  client.role = 'leader'
+
   return pair.left.connect().then(function () {
-    return pair
+    return client
   })
 }
 
@@ -36,8 +46,8 @@ afterEach(function () {
 })
 
 it('sets widget position', function () {
-  return createTest().then(function (test) {
-    var unbind = badge({ sync: test.leftSync }, {
+  return createClient().then(function (client) {
+    var unbind = badge(client, {
       position: 'bottom-left',
       styles: styles
     })
@@ -49,10 +59,10 @@ it('sets widget position', function () {
 })
 
 it('hides missing widget icons', function () {
-  return createTest().then(function (test) {
-    var unbind = badge({ sync: test.leftSync })
+  return createClient().then(function (client) {
+    var unbind = badge(client)
 
-    test.leftSync.setState('wait')
+    client.sync.setState('wait')
     expect(getBadgeIcon().style.display).toBe('none')
 
     unbind()
@@ -60,24 +70,24 @@ it('hides missing widget icons', function () {
 })
 
 it('changes widget message on state events', function () {
-  return createTest().then(function (test) {
-    var unbind = badge({ sync: test.leftSync }, {
+  return createClient().then(function (client) {
+    var unbind = badge(client, {
       messages: messages
     })
 
-    test.leftSync.setState('wait')
+    client.sync.setState('wait')
     expect(getBadgeMessage()).toBe(messages.wait)
 
-    test.leftSync.setState('connecting')
+    client.sync.setState('connecting')
     expect(getBadgeMessage()).toBe(messages.sending)
 
-    test.leftSync.setState('sending')
+    client.sync.setState('sending')
     expect(getBadgeMessage()).toBe(messages.sending)
 
-    test.leftSync.setState('synchronized')
+    client.sync.setState('synchronized')
     expect(getBadgeMessage()).toBe(messages.synchronized)
 
-    test.leftSync.setState('disconnected')
+    client.sync.setState('disconnected')
     expect(getBadgeMessage()).toBe(messages.disconnected)
 
     unbind()
@@ -85,53 +95,67 @@ it('changes widget message on state events', function () {
 })
 
 it('changes widget messages on errors', function () {
-  return createTest().then(function (test) {
-    var unbind = badge({ sync: test.leftSync }, {
+  return createClient().then(function (client) {
+    var unbind = badge(client, {
       messages: messages
     })
 
     var supported = { supported: ['A'], used: ['B'] }
 
-    test.leftSync.emitter.emit('error', new SyncError(test.leftSync,
-                                                'wrong-protocol', supported))
+    var error = new SyncError(client.sync, 'wrong-protocol', supported)
+    client.sync.emitter.emit('error', error)
     expect(getBadgeMessage()).toBe(messages.protocolError)
 
-    test.leftSync.emitter.emit('error', new SyncError(test.leftSync,
-                                                'wrong-subprotocol', supported))
+    error = new SyncError(client.sync, 'wrong-subprotocol', supported)
+    client.sync.emitter.emit('error', error)
     expect(getBadgeMessage()).toBe(messages.protocolError)
 
-    test.leftSync.emitter.emit('error', new SyncError(test.leftSync,
-                                                'wrong-format'))
+    error = new SyncError(client.sync, 'wrong-format', supported)
+    client.sync.emitter.emit('error', error)
     expect(getBadgeMessage()).toBe(messages.serverError)
 
     unbind()
   })
 })
 
+it('supports cross-tab synchronization', function () {
+  return createClient().then(function (client) {
+    client.role = 'follower'
+    var unbind = badge(client, {
+      messages: messages,
+      styles: styles
+    })
+
+    client.state = 'disconnected'
+    client.emitter.emit('state')
+    expect(getBadgeMessage()).toBe(messages.disconnected)
+    expect(getBadge().style.opacity).toBe('1')
+
+    unbind()
+  })
+})
+
 it('returns unbind function and remove widget from DOM', function () {
-  return createTest().then(function (test) {
-    var unbind = badge({ sync: test.leftSync })
+  return createClient().then(function (client) {
+    var unbind = badge(client)
     unbind()
 
-    test.leftSync.setState('wait')
-    expect(getBadge()).toBeNull()
+    client.sync.setState('wait')
+    expect(getBadge()).toBe(null)
   })
 })
 
 it('hides widget after timeout on synchronized state', function () {
-  return createTest().then(function (test) {
-    var unbind = badge({ sync: test.leftSync }, {
-      styles: styles
-    })
+  return createClient().then(function (client) {
+    var unbind = badge(client, { styles: styles })
 
-    test.leftSync.setState('synchronized')
+    client.sync.setState('synchronized')
     expect(getBadge().style.opacity).toBe('0')
 
-    test.leftSync.setState('wait')
-    test.leftSync.setState('sending')
-
+    client.sync.setState('wait')
+    client.sync.setState('sending')
     jest.useFakeTimers()
-    test.leftSync.setState('synchronized')
+    client.sync.setState('synchronized')
     expect(getBadge().style.opacity).toBe('1')
 
     jest.runAllTimers()
