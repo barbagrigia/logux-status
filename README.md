@@ -14,8 +14,8 @@ var confirm = require('logux-status/confirm')
 var favicon = require('logux-status/favicon')
 var log = require('logux-status/log')
 var badge = require('logux-status/badge')
-var messages = require('logux-status/badge/en')
-var defaultStyles = require('logux-status/badge/default')
+var badgeMessages = require('logux-status/badge/en')
+var badgeStyles = require('logux-status/badge/default')
 
 attention(client)
 confirm(client, i18n.t('loguxWarn'))
@@ -27,8 +27,8 @@ favicon(client, {
 log(client)
 badge(client, {
   position: 'bottom-right',
-  messages: messages,
-  styles: defaultStyles
+  messages: badgeMessages,
+  styles: badgeStyles
 })
 ```
 
@@ -174,7 +174,7 @@ function disableLogux() {
 
 ## `badge`
 
-Show widget to display synchronization status.
+Shows widget to display synchronization status.
 
 ```js
 var badge = require('logux-status/badge')
@@ -183,31 +183,56 @@ badge(client)
 
 User should always be sure, that she/he have latest updates.
 If pages goes offline, we must notify user, that data could be outdated.
-By using widget, we could notify user about current synchronization status, errors and Internet disconnection.
+By using widget, we could notify user about current synchronization status,
+errors and Internet disconnection.
 
-In the second argument, you can specify widget settings object.
+In the second argument, you can specify widget `settings` `Object`.
 
-You can set widget position, one of `top-left`, `top-right`, `bottom-left`, `bottom-right`.
+* `position` — `String` — Sets widget position,
+one of `top-left`, `top-right`, `bottom-left`, `bottom-right`.
 
-```js
-badge(client, { position: 'bottom-left' })
-```
+  ```js
+  badge(client, { position: 'bottom-left' })
+  ```
 
-You can use i18n messages for localization, by default they are in **[`en`](./badge/en.js)** and **[`ru`](./badge/ru.js)**, or set their own.
+* `messages` — `Object` — Sets widget messages on [`state`] events and [`errors`]:
+  * `disconnected`, `wait`, `connecting`, `sending`, `synchronized` - messages
+   on state events
+  * `protocolError` - message on `wrong-protocol` and `wrong-subprotocol` errors
+  * `error` - message on errors with exception of `wrong-protocol` and
+   `wrong-subprotocol`
 
-```js
-var ru = require('logux-status/badge/ru')
-badge(client, { messages: ru })
-```
+  You can use i18n messages for localization, by default
+   **[`en`](./badge/en.js)** and **[`ru`](./badge/ru.js)**.
 
-You can use **[`default`](./badge/default.js)** icons, inline styles and timeout to display synchronized state, or set their own.
+  ```js
+  var ru = require('logux-status/badge/ru')
+  badge(client, { messages: ru })
+  ```
 
-```js
-var default = require('logux-status/badge/default')
-badge(client, { styles: default })
-```
+* `styles` — `Object` — Sets widget inline styles, icons links and timeout
+ to display synchronized state:
+  * `icons` - `Object` - Sets icon links
+  * `widget` - `Object` - Sets widget common inline styles
+  * `icon` - `Object` - Sets inline styles for icons
+  * `normal` - `Object` - Sets inline styles for states, `wrong-protocol`
+   and `wrong-subprotocol` errors
+  * `error` - `Object` - Sets inline styles for errors with exception of
+   `wrong-protocol` and `wrong-subprotocol`
+  * `timeout` - `Number` - Sets delay to display `synchronized` state
+  in milliseconds
 
-It return a function to disable itself.
+  You can use **[`default`](./badge/default.js)** `styles`, or set their own.
+
+  ```js
+  var default = require('logux-status/badge/default')
+  badge(client, { styles: default })
+  ```
+
+[`state`]: https://github.com/logux/logux-sync#state
+[`errors`]: https://github.com/logux/logux-protocol/blob/master/spec.md#error
+
+It return a function to disable itself and remove widget from DOM.
 
 ```js
 var unbind = badge(client)

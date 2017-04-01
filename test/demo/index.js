@@ -77,10 +77,17 @@ document.all.serverError.onclick = function () {
   }, 3000)
 }
 
+document.all.add.onclick = function () {
+  client.log.add({ type: 'TEST' }, { reasons: ['test'] })
+}
+
+document.all.clean.onclick = function () {
+  client.log.removeReason('test')
+}
+
 document.all.protocolError.onclick = function () {
   setTimeout(function () {
-    client.sync.syncError('wrong-protocol',
-                          { supported: ['1.0'], used: ['1.1.0'] })
+    client.sync.syncError('wrong-protocol', { supported: [1, 0], used: [2, 0] })
   }, 3000)
 }
 
@@ -97,12 +104,4 @@ document.all.setSynchronized.onclick = function () {
       }, 500)
     }, 1000)
   }, 1000)
-}
-
-document.all.add.onclick = function () {
-  client.log.add({ type: 'TEST' }, { reasons: ['test'] })
-}
-
-document.all.clean.onclick = function () {
-  client.log.removeReason('test')
 }

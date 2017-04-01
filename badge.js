@@ -21,29 +21,34 @@ function setIcon (element, icon) {
 }
 
 /**
- * Show widget to display synchronization status.
+ * Shows widget to display synchronization status.
  *
  * @param {Client} client Observed Client instance.
- * @param {object} [settings] Widget settings.
- * @param {string} [settings.position] Set widget position. One of
+ * @param {Object} [settings] Widget settings.
+ * @param {String} [settings.position] Sets widget position. One of
  *                                    'bottom-left', 'bottom-right',
  *                                    'top-left', 'top-right'.
- * @param {object} [settings.messages] Set widget messages on states and errors.
- * @param {string} [messages.disconnected] Disconnected state message.
- * @param {string} [messages.wait] Wait state message.
- * @param {string} [messages.sending] Sending or connecting states message.
- * @param {string} [messages.synchronized] Synchronized state message.
- * @param {string} [messages.protocolError] Protocol errors message.
- * @param {string} [messages.serverError] Server errors message.
- * @param {object} [settings.styles] Set widget icons links and inline styles.
- * @param {object} [settings.icons] Set icons links.
- * @param {object} [styles.widget] Set widget common inline styles.
- * @param {object} [styles.icon] Set icon inline styles.
- * @param {object} [styles.normal] Set normal inline styles.
- * @param {object} [styles.error] Set server errors inline styles.
- * @param {object} [styles.hidden] Set hidden inline styles.
- * @param {object} [styles.visible] Set visible inline styles.
- * @param {number} [styles.timeout] Set timeout to display synchronized state.
+ * @param {Object} [settings.messages] Sets widget messages on state events and
+ *                                     errors.
+ * @param {String} [messages.disconnected] Disconnected state message.
+ * @param {String} [messages.wait] Wait state message.
+ * @param {String} [messages.connecting] Connecting state message.
+ * @param {String} [messages.sending] Sending state message.
+ * @param {String} [messages.synchronized] Synchronized state message.
+ * @param {String} [messages.protocolError] Wrong protocol and wrong sub
+ *                                          protocol errors message.
+ * @param {String} [messages.error] Error message with exception of wrong
+ *                                  protocol and wrong sub protocol.
+ * @param {Object} [settings.styles] Sets widget inline styles, icons links and
+ *                                   timeout to display synchronized state.
+ * @param {Object} [styles.icons] Sets icons links.
+ * @param {Object} [styles.widget] Sets widget common inline styles.
+ * @param {Object} [styles.icon] Sets inline styles for icons.
+ * @param {Object} [styles.normal] Sets inline styles for states, wrong protocol
+ *                                 and wrong sub protocol errors.
+ * @param {Object} [styles.error] Sets inline styles for errors with exception
+ *                                of wrong protocol and wrong sub protocol.
+ * @param {Number} [styles.timeout] Sets delay to display synchronized state.
  *
  * @return {Function} Unbind widget listener and remove widget from DOM.
  *
@@ -68,62 +73,71 @@ function badge (client, settings) {
   var timeout = styles.timeout || 2000
   var normal = styles.normal
   var error = styles.error
-  var visible = styles.visible
-  var hidden = styles.hidden
 
   var unbind = []
   var widget = false
+  var message = false
   var icon = false
   var prevState = false
 
-  if (typeof document !== 'undefined') {
+  function createWidget () {
     widget = document.createElement('div')
     widget.id = 'logux-status-badge'
-    document.body.appendChild(widget)
-    setInlineStyle(widget, styles.widget)
     setPosition(widget, position)
+    setInlineStyle(widget, styles.widget)
 
-    var message = document.createElement('span')
+    message = document.createElement('span')
     message.id = 'logux-status-badge-message'
     widget.appendChild(message)
 
     icon = document.createElement('div')
     icon.id = 'logux-status-badge-icon'
-    widget.appendChild(icon)
     setInlineStyle(icon, styles.icon)
+    widget.appendChild(icon)
 
+    document.body.appendChild(widget)
+  }
+
+  if (typeof document !== 'undefined') {
+    createWidget()
     unbind.push(client.on('state', function () {
       setInlineStyle(widget, normal)
       switch (client.state) {
         case 'synchronized':
-          setIcon(icon, icons.success)
-          message.innerHTML = messages.synchronized
           if (prevState === 'connecting' || prevState === 'sending') {
-            setInlineStyle(widget, visible)
+            setIcon(icon, icons.synchronized)
+            message.innerHTML = messages.synchronized
+            widget.style.visibility = 'visible'
             setTimeout(function () {
-              setInlineStyle(widget, hidden)
+              widget.style.visibility = 'hidden'
             }, timeout)
           } else {
-            setInlineStyle(widget, hidden)
+            widget.style.visibility = 'hidden'
           }
           break
         case 'wait':
           message.innerHTML = messages.wait
-          setIcon(icon, icons.attention)
-          setInlineStyle(widget, visible)
+          setIcon(icon, icons.wait)
+          widget.style.visibility = 'visible'
           break
         case 'connecting':
+          if (prevState === 'wait') {
+            setIcon(icon, icons.connecting)
+            message.innerHTML = messages.connecting
+            widget.style.visibility = 'visible'
+          }
+          break
         case 'sending':
           if (prevState === 'wait') {
             setIcon(icon, icons.sending)
             message.innerHTML = messages.sending
-            setInlineStyle(widget, visible)
+            widget.style.visibility = 'visible'
           }
           break
         case 'disconnected':
           message.innerHTML = messages.disconnected
-          setIcon(icon, icons.attention)
-          setInlineStyle(widget, visible)
+          setIcon(icon, icons.disconnected)
+          widget.style.visibility = 'visible'
           break
       }
       prevState = client.state
@@ -131,15 +145,15 @@ function badge (client, settings) {
 
     unbind.push(client.sync.on('error', function (err) {
       if (err.type === 'wrong-protocol' || err.type === 'wrong-subprotocol') {
-        setIcon(icon, icons.attention)
+        setIcon(icon, icons.protocolError)
         message.innerHTML = messages.protocolError
         setInlineStyle(widget, normal)
       } else {
-        setIcon(icon, icons.error)
-        message.innerHTML = messages.serverError
+        setIcon(icon, icons.serverError)
+        message.innerHTML = messages.error
         setInlineStyle(widget, error)
       }
-      setInlineStyle(widget, visible)
+      widget.style.visibility = 'visible'
     }))
   }
 
@@ -147,7 +161,7 @@ function badge (client, settings) {
     for (var i = 0; i < unbind.length; i++) {
       unbind[i]()
     }
-    document.body.removeChild(document.getElementById(widget.id))
+    widget.parentNode.removeChild(widget)
   }
 }
 

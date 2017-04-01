@@ -1,33 +1,37 @@
 var attention = require('./attention.svg')
 var error = require('./error.svg')
-var sending = require('./sending.svg')
+var refresh = require('./refresh.svg')
 var success = require('./success.svg')
 
 module.exports = {
   icons: {
-    attention: attention,
-    error: error,
-    sending: sending,
-    success: success
+    disconnected: attention,
+    wait: attention,
+    connecting: refresh,
+    sending: refresh,
+    synchronized: success,
+    protocolError: attention,
+    serverError: error
   },
   widget: {
     position: 'fixed',
-    zIndex: 999,
     display: 'flex',
-    width: '250px',
-    margin: '10px',
-    padding: '15px',
-    borderRadius: '5px',
+    fontSize: '13px',
+    width: '19.231em',
+    height: '3.8462em',
+    margin: '1em',
+    borderRadius: '0.3846em',
     boxSizing: 'border-box',
     alignItems: 'center',
-    opacity: 0,
     color: '#ffffff',
-    textAlign: 'left',
-    fontSize: '13px',
-    fontWeight: 'normal',
+    background: '#000000',
+    opacity: '0.8',
+    zIndex: 999,
+    fontFamily: 'Helvetica Neue, Lucida Grande, Helvetica, Arial, sans-serif',
+    fontWeight: '400',
     fontStyle: 'normal',
     fontVariant: 'normal',
-    fontFamily: 'Helvetica Neue, sans-serif',
+    textAlign: 'left',
     textIndent: '0',
     textTransform: 'none',
     wordSpacing: 'normal',
@@ -36,27 +40,22 @@ module.exports = {
   },
   icon: {
     display: 'block',
+    width: '3.8462em',
+    height: '3.8462em',
     margin: 0,
+    marginRight: '0.15385em',
     padding: 0,
-    marginRight: '0.8em',
-    width: '2em',
-    height: '2em',
     boxSizing: 'border-box',
-    order: -1,
     backgroundRepeat: 'no-repeat',
-    backgroundSize: 'contain'
+    backgroundPosition: 'center center',
+    backgroundSize: '1.8462em 1.8462em',
+    order: -1
   },
   normal: {
-    background: '#1f1f1f'
+    background: '#000000'
   },
   error: {
-    background: '#e04041'
-  },
-  hidden: {
-    opacity: 0
-  },
-  visible: {
-    opacity: 1
+    background: '#f32a2a'
   },
   timeout: 2000
 }
